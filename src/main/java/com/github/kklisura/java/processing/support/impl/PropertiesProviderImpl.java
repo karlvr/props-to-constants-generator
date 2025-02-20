@@ -52,15 +52,13 @@ public class PropertiesProviderImpl implements PropertiesProvider {
     return loadProperties(resource);
   }
 
-  private Properties loadProperties(FileObject fileObject) {
+  private Properties loadProperties(FileObject fileObject) throws IOException {
     Properties properties = new Properties();
 
     InputStream inputStream = null;
     try {
       inputStream = fileObject.openInputStream();
       properties.load(inputStream);
-    } catch (IOException e) {
-      throw new RuntimeException("Failed reading properties file " + fileObject.getName(), e);
     } finally {
       if (inputStream != null) {
         try {

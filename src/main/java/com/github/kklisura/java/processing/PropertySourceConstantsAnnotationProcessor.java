@@ -152,7 +152,7 @@ public class PropertySourceConstantsAnnotationProcessor extends AbstractProcesso
                   "Generated {0} for {1}", annotation.className(), annotation.resourceName()));
     } catch (IOException e) {
       processingEnv.getMessager().printMessage(Kind.ERROR, e.getMessage());
-      throw new RuntimeException("Failed reading resource " + annotation.resourceName(), e);
+      // throw new RuntimeException("Failed reading resource " + annotation.resourceName(), e);
     }
   }
 
