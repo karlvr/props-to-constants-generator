@@ -29,4 +29,7 @@ module com.github.kklisura.java.processing {
   requires org.apache.commons.lang3;
   requires org.apache.commons.text;
   requires java.compiler;
+
+  provides javax.annotation.processing.Processor with
+      com.github.kklisura.java.processing.PropertySourceConstantsAnnotationProcessor;
 }
