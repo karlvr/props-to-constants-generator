@@ -42,7 +42,6 @@ import java.util.TreeMap;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
-import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.PackageElement;
@@ -55,7 +54,6 @@ import org.apache.commons.lang3.StringUtils;
  *
  * @author Kenan Klisura
  */
-@SupportedSourceVersion(SourceVersion.RELEASE_11)
 @SupportedAnnotationTypes({
   "com.github.kklisura.java.processing.annotations.PropertySourceConstants",
   "com.github.kklisura.java.processing.annotations.PropertySourceConstantsContainer"
@@ -66,6 +64,11 @@ public class PropertySourceConstantsAnnotationProcessor extends AbstractProcesso
 
   public PropertySourceConstantsAnnotationProcessor() {
     this(new ClassWriterImpl(), new PropertiesProviderImpl());
+  }
+
+  @Override
+  public SourceVersion getSupportedSourceVersion() {
+    return SourceVersion.latestSupported();
   }
 
   public PropertySourceConstantsAnnotationProcessor(
