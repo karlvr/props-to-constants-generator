@@ -28,8 +28,6 @@ package com.github.kklisura.java.processing;
 
 import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import com.github.kklisura.java.processing.annotations.PropertySourceConstants;
 import com.github.kklisura.java.processing.annotations.PropertySourceConstantsContainer;
@@ -233,12 +231,15 @@ public class PropertySourceConstantsAnnotationProcessorTest extends EasyMockSupp
     expect(roundEnv.getElementsAnnotatedWith(PropertySourceConstants.class))
         .andReturn(elementSet());
 
+    expect(roundEnv.getElementsAnnotatedWith(PropertySourceConstantsContainer.class))
+        .andReturn(Collections.emptySet());
+
     expect(typeElement.getAnnotationsByType(PropertySourceConstants.class))
         .andReturn(new PropertySourceConstants[] {propertySourceConstants});
 
     expect(propertySourceConstants.resourceName())
         .andReturn("my-properties-file.properties")
-        .times(2);
+        .times(1);
 
     expect(propertiesProvider.loadProperties("my-properties-file.properties", processingEnv))
         .andThrow(new IOException("exception message"));
@@ -248,12 +249,7 @@ public class PropertySourceConstantsAnnotationProcessorTest extends EasyMockSupp
 
     replayAll();
 
-    try {
-      assertEquals(false, processor.process(annotationsSet(), roundEnv));
-      fail();
-    } catch (RuntimeException e) {
-      assertTrue(e.getCause() instanceof IOException);
-    }
+    assertEquals(false, processor.process(annotationsSet(), roundEnv));
 
     verifyAll();
   }

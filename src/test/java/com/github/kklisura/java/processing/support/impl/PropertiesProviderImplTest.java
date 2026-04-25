@@ -27,7 +27,6 @@ package com.github.kklisura.java.processing.support.impl;
  */
 
 import static com.github.kklisura.java.processing.utils.TestUtils.getFixtureURI;
-import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -38,6 +37,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.tools.FileObject;
@@ -60,8 +60,6 @@ public class PropertiesProviderImplTest extends EasyMockSupport {
   @Mock private Filer filer;
 
   @Mock private ProcessingEnvironment processingEnvironment;
-
-  @Mock private InputStream inputStream;
 
   private PropertiesProvider propertiesProvider;
 
@@ -104,26 +102,47 @@ public class PropertiesProviderImplTest extends EasyMockSupport {
 
   @Test
   public void testLoadPropertiesThrowsException2() throws IOException {
-    FileObject simpleJavaFileObject = new InputStreamFileObject("test-properties", inputStream);
+    AtomicBoolean closed = new AtomicBoolean(false);
+    InputStream throwingInputStream =
+        new InputStream() {
+          @Override
+          public int read() throws IOException {
+            throw new IOException("exception");
+          }
+
+          @Override
+          public int read(byte[] b) throws IOException {
+            throw new IOException("exception");
+          }
+
+          @Override
+          public int read(byte[] b, int off, int len) throws IOException {
+            throw new IOException("exception");
+          }
+
+          @Override
+          public void close() {
+            closed.set(true);
+          }
+        };
+    FileObject simpleJavaFileObject =
+        new InputStreamFileObject("test-properties", throwingInputStream);
 
     expect(processingEnvironment.getFiler()).andReturn(filer);
     expect(filer.getResource(StandardLocation.CLASS_OUTPUT, "", "test-properties"))
         .andReturn(simpleJavaFileObject);
-
-    expect(inputStream.read(anyObject())).andThrow(new IOException("exception"));
-
-    inputStream.close();
 
     replayAll();
 
     try {
       propertiesProvider.loadProperties("test-properties", processingEnvironment);
       fail();
-    } catch (RuntimeException e) {
+    } catch (IOException e) {
       // Ok
     }
 
     verifyAll();
+    assertTrue(closed.get());
   }
 
   public static class FixtureFileObject extends SimpleJavaFileObject {
