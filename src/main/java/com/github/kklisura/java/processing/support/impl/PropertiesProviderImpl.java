@@ -29,6 +29,9 @@ package com.github.kklisura.java.processing.support.impl;
 import com.github.kklisura.java.processing.support.PropertiesProvider;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.tools.FileObject;
@@ -58,7 +61,8 @@ public class PropertiesProviderImpl implements PropertiesProvider {
     InputStream inputStream = null;
     try {
       inputStream = fileObject.openInputStream();
-      properties.load(inputStream);
+      Reader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+      properties.load(reader);
     } finally {
       if (inputStream != null) {
         try {
