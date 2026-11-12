@@ -28,11 +28,13 @@ package com.github.kklisura.java.processing;
 
 import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import com.github.kklisura.java.processing.annotations.PropertySourceConstants;
 import com.github.kklisura.java.processing.annotations.PropertySourceConstantsContainer;
 import com.github.kklisura.java.processing.support.ClassWriter;
 import com.github.kklisura.java.processing.support.PropertiesProvider;
+import com.github.kklisura.java.processing.support.impl.PropertiesProviderImpl;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -245,13 +247,59 @@ public class PropertySourceConstantsAnnotationProcessorTest extends EasyMockSupp
         .andThrow(new IOException("exception message"));
 
     expect(processingEnv.getMessager()).andReturn(messager);
-    messager.printMessage(Kind.ERROR, "exception message");
+    messager.printMessage(Kind.ERROR, "exception message", typeElement);
 
     replayAll();
 
     assertEquals(false, processor.process(annotationsSet(), roundEnv));
 
     verifyAll();
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testProcessPropertySourceConstantsContainerAnnotationWithException()
+      throws IOException {
+    setupProcessingEnvironment();
+    setupRoundEnvironment();
+
+    setupPackageElement("com.github.kklisura");
+
+    expect(roundEnv.getElementsAnnotatedWith(PropertySourceConstants.class))
+        .andReturn(Collections.emptySet());
+
+    expect(roundEnv.getElementsAnnotatedWith(PropertySourceConstantsContainer.class))
+        .andReturn(elementSet());
+
+    expect(typeElement.getAnnotationsByType(PropertySourceConstantsContainer.class))
+        .andReturn(new PropertySourceConstantsContainer[] {propertySourceConstantsContainer});
+
+    expect(propertySourceConstantsContainer.value())
+        .andReturn(new PropertySourceConstants[] {propertySourceConstants});
+
+    expect(propertySourceConstants.resourceName())
+        .andReturn("my-properties-file.properties")
+        .times(1);
+
+    expect(propertiesProvider.loadProperties("my-properties-file.properties", processingEnv))
+        .andThrow(new IOException("exception message"));
+
+    expect(processingEnv.getMessager()).andReturn(messager);
+    messager.printMessage(Kind.ERROR, "exception message", typeElement);
+
+    replayAll();
+
+    assertEquals(false, processor.process(annotationsSet(), roundEnv));
+
+    verifyAll();
+  }
+
+  @Test
+  public void testSupportsTheResourceDirsOption() {
+    replayAll();
+
+    assertTrue(
+        processor.getSupportedOptions().contains(PropertiesProviderImpl.RESOURCE_DIRS_OPTION));
   }
 
   @Test

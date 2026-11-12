@@ -53,6 +53,28 @@ public class Application {
 When you compile the application like you normally do, the `Messages_` class will be generated in the `target/generated-sources/annotations/...` directory.
 The generated class is created in the annotated class's package, unless you fully qualify the `className` attribute.
 
+## Resource directories
+
+The processor reads the properties file from the class output (`target/classes`), where Maven copies the resources before it compiles.
+An IDE's build can compile before it copies the resources, for example a full build in Eclipse or VS Code.
+Name the resource directories in the `propertySourceConstants.resourceDirs` processor option, so that the processor reads the file from them when the class output does not contain it.
+Separate several directories with the platform's path separator.
+
+```xml
+<plugin>
+  <groupId>org.apache.maven.plugins</groupId>
+  <artifactId>maven-compiler-plugin</artifactId>
+  <configuration>
+    <compilerArgs>
+      <arg>-ApropertySourceConstants.resourceDirs=${project.basedir}/src/main/resources</arg>
+    </compilerArgs>
+  </configuration>
+</plugin>
+```
+
+The processor reads the file from the directory as it is, so Maven resource filtering does not apply to it.
+If the processor cannot read the file, it reports the error on the annotated class.
+
 ## Style
 
 By default the output style is a class containing constants, however you can specify `enum` as the output style to generate an enum so you can

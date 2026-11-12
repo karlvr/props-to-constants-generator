@@ -42,6 +42,7 @@ import java.util.TreeMap;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
+import javax.annotation.processing.SupportedOptions;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.PackageElement;
@@ -58,6 +59,7 @@ import org.apache.commons.lang3.StringUtils;
   "com.github.kklisura.java.processing.annotations.PropertySourceConstants",
   "com.github.kklisura.java.processing.annotations.PropertySourceConstantsContainer"
 })
+@SupportedOptions(PropertiesProviderImpl.RESOURCE_DIRS_OPTION)
 public class PropertySourceConstantsAnnotationProcessor extends AbstractProcessor {
   private ClassWriter classWriter;
   private PropertiesProvider propertiesProvider;
@@ -120,7 +122,7 @@ public class PropertySourceConstantsAnnotationProcessor extends AbstractProcesso
 
     for (PropertySourceConstantsContainer annotation : annotations) {
       for (PropertySourceConstants childAnnotation : annotation.value()) {
-        processPropertySourceConstants(packageName, childAnnotation);
+        processPropertySourceConstants(packageName, childAnnotation, element);
       }
     }
   }
@@ -130,12 +132,16 @@ public class PropertySourceConstantsAnnotationProcessor extends AbstractProcesso
         element.getAnnotationsByType(PropertySourceConstants.class);
 
     for (PropertySourceConstants annotation : annotations) {
-      processPropertySourceConstants(packageName, annotation);
+      processPropertySourceConstants(packageName, annotation, element);
     }
   }
 
+  /**
+   * Generates the class of one annotation. A failure is reported against the annotated element,
+   * because some compilers only log an error that has no element, so the build does not show it.
+   */
   private void processPropertySourceConstants(
-      String packageName, PropertySourceConstants annotation) {
+      String packageName, PropertySourceConstants annotation, Element element) {
     try {
       Properties properties =
           propertiesProvider.loadProperties(annotation.resourceName(), processingEnv);
@@ -154,7 +160,7 @@ public class PropertySourceConstantsAnnotationProcessor extends AbstractProcesso
               MessageFormat.format(
                   "Generated {0} for {1}", annotation.className(), annotation.resourceName()));
     } catch (IOException e) {
-      processingEnv.getMessager().printMessage(Kind.ERROR, e.getMessage());
+      processingEnv.getMessager().printMessage(Kind.ERROR, e.getMessage(), element);
       // throw new RuntimeException("Failed reading resource " + annotation.resourceName(), e);
     }
   }
